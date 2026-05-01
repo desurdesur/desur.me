@@ -114,8 +114,10 @@
       transition: color 0.15s ease;
     }
 
-    a:hover {
-      color: var(--link-hover);
+    @media (hover: hover) {
+      a:hover {
+        color: var(--link-hover);
+      }
     }
 
     .contacts {
@@ -130,7 +132,7 @@
     .theme-toggle {
       position: fixed;
       top: 4.75rem;
-      right: 1.5rem;
+      right: max(1rem, calc(50vw - 320px));
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
@@ -146,9 +148,11 @@
       z-index: 10;
     }
 
-    .theme-toggle:hover {
-      color: var(--text);
-      background: var(--toggle-hover-bg);
+    @media (hover: hover) {
+      .theme-toggle:hover {
+        color: var(--text);
+        background: var(--toggle-hover-bg);
+      }
     }
 
     .theme-toggle svg {
@@ -183,7 +187,6 @@
       }
       .theme-toggle {
         top: 3rem;
-        right: 1rem;
       }
     }
   </style>
@@ -208,7 +211,7 @@
   </button>
 
   <main>
-    <h1>Hey 👋<br>i'm Aleksei Novikov</h1>
+    <h1>Hey 👋<br>i'm Aleksei Novikov.</h1>
 
     <p>Product Manager at Toloka. Amsterdam.</p>
 
