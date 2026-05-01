@@ -9,20 +9,46 @@
   <meta property="og:description" content="Product Manager at Toloka. Amsterdam.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">👋</text></svg>'>
+  <script>
+    // Apply saved theme before paint to avoid flicker.
+    (function() {
+      try {
+        var s = localStorage.getItem('theme');
+        if (s === 'light' || s === 'dark') {
+          document.documentElement.setAttribute('data-theme', s);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    /* Light is the default. */
     :root {
-      --bg: #0a0a0a;
-      --text: #e8e8e8;
-      --muted: #8a8a8a;
-      --link: #f0f0f0;
-      --link-hover: #ffffff;
-      --toggle-hover-bg: rgba(255, 255, 255, 0.06);
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --muted: #6a6a6a;
+      --link: #2a2a2a;
+      --link-hover: #000000;
+      --toggle-hover-bg: rgba(0, 0, 0, 0.05);
     }
 
+    /* Follow system preference when no manual override. */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0a0a0a;
+        --text: #e8e8e8;
+        --muted: #8a8a8a;
+        --link: #f0f0f0;
+        --link-hover: #ffffff;
+        --toggle-hover-bg: rgba(255, 255, 255, 0.06);
+      }
+    }
+
+    /* Manual overrides win over media query (higher specificity). */
     [data-theme="light"] {
       --bg: #fafafa;
       --text: #1a1a1a;
@@ -30,6 +56,15 @@
       --link: #2a2a2a;
       --link-hover: #000000;
       --toggle-hover-bg: rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0a;
+      --text: #e8e8e8;
+      --muted: #8a8a8a;
+      --link: #f0f0f0;
+      --link-hover: #ffffff;
+      --toggle-hover-bg: rgba(255, 255, 255, 0.06);
     }
 
     * {
@@ -122,9 +157,20 @@
       flex-shrink: 0;
     }
 
-    .theme-toggle .icon-moon { display: none; }
+    /* Icon visibility — same dual-source logic as colors. */
+    /* Default light = show moon (action: switch to dark). */
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: inline-block; }
+
+    @media (prefers-color-scheme: dark) {
+      .theme-toggle .icon-sun { display: inline-block; }
+      .theme-toggle .icon-moon { display: none; }
+    }
+
     [data-theme="light"] .theme-toggle .icon-sun { display: none; }
     [data-theme="light"] .theme-toggle .icon-moon { display: inline-block; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: inline-block; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
     @media (max-width: 600px) {
       body {
@@ -158,11 +204,11 @@
     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
     </svg>
-    <span class="theme-label">Light</span>
+    <span class="theme-label">Dark</span>
   </button>
 
   <main>
-    <h1>Hey 👋<br>i'm Aleksei Novikov</h1>
+    <h1>Hey 👋<br>i'm Aleksei Novikov.</h1>
 
     <p>Product Manager at Toloka. Amsterdam.</p>
 
@@ -239,30 +285,37 @@
     (function() {
       var root = document.documentElement;
       var btn = document.getElementById('themeToggle');
-
+      if (!btn) return;
       var label = btn.querySelector('.theme-label');
 
-      function setTheme(theme) {
-        if (theme === 'light') {
-          root.setAttribute('data-theme', 'light');
-          if (label) label.textContent = 'Dark';
-        } else {
-          root.removeAttribute('data-theme');
-          if (label) label.textContent = 'Light';
-        }
+      function effectiveTheme() {
+        var ds = root.getAttribute('data-theme');
+        if (ds === 'light' || ds === 'dark') return ds;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
 
-      var saved = null;
-      try { saved = localStorage.getItem('theme'); } catch(e) {}
-      if (saved === 'light' || saved === 'dark') {
-        setTheme(saved);
+      function updateLabel() {
+        if (label) label.textContent = effectiveTheme() === 'dark' ? 'Light' : 'Dark';
       }
+
+      updateLabel();
 
       btn.addEventListener('click', function() {
-        var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        setTheme(next);
-        try { localStorage.setItem('theme', next); } catch(e) {}
+        var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
+        updateLabel();
       });
+
+      // Follow system changes when no manual override.
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      if (mq && mq.addEventListener) {
+        mq.addEventListener('change', function() {
+          var saved = null;
+          try { saved = localStorage.getItem('theme'); } catch (e) {}
+          if (!saved) updateLabel();
+        });
+      }
     })();
   </script>
 </body>
